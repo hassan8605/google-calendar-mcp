@@ -1,0 +1,23 @@
+services:
+  calendar-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: calendar-mcp
+    ports:
+      - "4325:4325"           # REST API + MCP SSE both on port 4325
+    env_file:
+      - .env
+    volumes:
+      - tokens:/app/tokens    # persist OAuth tokens across restarts
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:4325/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  tokens:
+    driver: local
