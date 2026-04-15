@@ -71,7 +71,8 @@ TOOL_DEFINITIONS: list[dict] = [
         "description": (
             "Create a new Google Calendar event. "
             "start_datetime and end_datetime must be ISO-8601 with timezone, "
-            "e.g. '2025-04-14T14:00:00+05:00'."
+            "e.g. '2025-04-14T14:00:00+05:00'. "
+            "Set add_meet_link=true to automatically generate a Google Meet video conference link."
         ),
         "input_schema": {
             "type": "object",
@@ -84,6 +85,11 @@ TOOL_DEFINITIONS: list[dict] = [
                 "location": {"type": "string"},
                 "attendees": {"type": "array", "items": {"type": "string"}},
                 "timezone": {"type": "string", "default": "UTC"},
+                "add_meet_link": {
+                    "type": "boolean",
+                    "default": False,
+                    "description": "Set to true to generate a Google Meet video conference link for this event.",
+                },
             },
             "required": ["summary", "start_datetime", "end_datetime"],
         },

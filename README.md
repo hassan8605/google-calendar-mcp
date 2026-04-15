@@ -18,6 +18,7 @@ Claude interprets the message, calls Google Calendar tools internally, and creat
 ## What it does
 
 - **Natural language scheduling** — Claude parses intent and calls Google Calendar API
+- **Google Meet links** — automatically generates a Meet video conference link when requested
 - **Multi-user** — each user connects their own Google Calendar via OAuth
 - **MCP server** — Claude Desktop can connect directly and use calendar tools
 - **10 calendar tools** — list, search, create, update, delete events, check availability, and more
@@ -221,6 +222,29 @@ Claude will:
 2. Call `create_event` with the parsed details
 3. Return a confirmation in plain English
 
+### Schedule a meeting with a Google Meet link
+
+```bash
+curl -X POST http://localhost:4325/api/calendar/schedule \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "hassan",
+    "message": "Schedule a 30-min call with haris@example.com tomorrow at 12pm, create a Meet link",
+    "timezone": "Asia/Karachi"
+  }'
+```
+
+When the user asks to "create a meet link" or "add video conference", Claude sets `add_meet_link: true` on `create_event` and a real Google Meet URL is attached to the event — identical to events created from the Google Calendar UI.
+
+The response includes `meet_link` in the event data:
+```json
+{
+  "meet_link": "https://meet.google.com/xxx-yyyy-zzz",
+  "html_link": "https://www.google.com/calendar/event?eid=...",
+  ...
+}
+```
+
 ---
 
 ## API Endpoints
@@ -247,7 +271,7 @@ Claude will:
 | `list_events` | List events with optional time filter |
 | `search_events` | Full-text search across events |
 | `get_event` | Fetch a single event by ID |
-| `create_event` | Create a new event |
+| `create_event` | Create a new event (pass `add_meet_link=true` to generate a Google Meet link) |
 | `update_event` | Update an existing event |
 | `delete_event` | Delete an event |
 | `get_freebusy` | Check availability slots |

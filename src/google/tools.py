@@ -16,6 +16,13 @@ from src.settings import settings
 
 
 def _normalize_event(e: dict) -> dict:
+    conference_data = e.get("conferenceData", {})
+    meet_link = None
+    for ep in conference_data.get("entryPoints", []):
+        if ep.get("entryPointType") == "video":
+            meet_link = ep.get("uri")
+            break
+
     return {
         "id": e.get("id", ""),
         "summary": e.get("summary", ""),
@@ -25,6 +32,7 @@ def _normalize_event(e: dict) -> dict:
         "end": e.get("end", {}),
         "status": e.get("status", ""),
         "html_link": e.get("htmlLink"),
+        "meet_link": meet_link,
         "attendees": [
             {"email": a.get("email"), "response": a.get("responseStatus")}
             for a in e.get("attendees", [])
@@ -114,7 +122,10 @@ async def create_event(
     location: str | None = None,
     attendees: list[str] | None = None,
     timezone: str = "UTC",
+    add_meet_link: bool = False,
 ) -> dict:
+    import uuid
+
     svc = await get_calendar_service(user_id)
     body: dict = {
         "summary": summary,
@@ -127,8 +138,19 @@ async def create_event(
         body["location"] = location
     if attendees:
         body["attendees"] = [{"email": addr} for addr in attendees]
+    if add_meet_link:
+        body["conferenceData"] = {
+            "createRequest": {
+                "requestId": str(uuid.uuid4()),
+                "conferenceSolutionKey": {"type": "hangoutsMeet"},
+            }
+        }
+
+    conference_data_version = 1 if add_meet_link else 0
     event = await asyncio.to_thread(
-        svc.events().insert(calendarId=calendar_id, body=body).execute
+        svc.events()
+        .insert(calendarId=calendar_id, body=body, conferenceDataVersion=conference_data_version)
+        .execute
     )
     return _normalize_event(event)
 

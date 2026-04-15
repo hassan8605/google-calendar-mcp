@@ -92,11 +92,13 @@ def create_mcp_server() -> FastMCP:
         description: str = "",
         location: str = "",
         timezone: str = "UTC",
+        add_meet_link: bool = False,
     ) -> str:
         """
         Create a new Google Calendar event.
         start_datetime and end_datetime must be ISO-8601 with timezone offset,
         e.g. '2025-04-14T14:00:00+05:00'.
+        Set add_meet_link=true to automatically generate a Google Meet video conference link.
         """
         try:
             return json.dumps(
@@ -108,6 +110,7 @@ def create_mcp_server() -> FastMCP:
                     description=description or None,
                     location=location or None,
                     timezone=timezone,
+                    add_meet_link=add_meet_link,
                 ),
                 default=str,
             )
